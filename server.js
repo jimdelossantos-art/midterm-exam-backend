@@ -10,22 +10,20 @@ const Product = require('./models/product');
 const User = require('./models/user');
 
 const app = express();
-app.use(cors()); // Importante para makakonekta ang localhost:3000 at Vercel
+app.use(cors());
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey123';
 
-// Connect to MongoDB (siguraduhing may MONGO_URI sa .env mo)
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.error(err));
 
-// Pambungad na Route
 app.get('/', (req, res) => {
   res.json({ message: "Midterm API with Auth, Client, and Product models is ready!" });
 });
 
-// AUTH ROUTES (Para tugma sa Next.js frontend)
+// ==================== AUTH ROUTES ====================
 app.post('/auth/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -58,11 +56,21 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// 1. CLIENT ROUTES
+// ==================== 1. CLIENT ROUTES (CRUD) ====================
 app.get('/api/clients', async (req, res) => {
   try {
     const clients = await Client.find();
     res.json(clients);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/api/clients/:id', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ message: "Client not found" });
+    res.json(client);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -78,11 +86,41 @@ app.post('/api/clients', async (req, res) => {
   }
 });
 
-// 2. PRODUCT ROUTES
+app.put('/api/clients/:id', async (req, res) => {
+  try {
+    const updatedClient = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedClient) return res.status(404).json({ message: "Client not found" });
+    res.json(updatedClient);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.delete('/api/clients/:id', async (req, res) => {
+  try {
+    const deletedClient = await Client.findByIdAndDelete(req.params.id);
+    if (!deletedClient) return res.status(404).json({ message: "Client not found" });
+    res.json({ message: "Client deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ==================== 2. PRODUCT ROUTES (CRUD) ====================
 app.get('/api/products', async (req, res) => {
   try {
     const products = await Product.find();
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -95,6 +133,26 @@ app.post('/api/products', async (req, res) => {
     res.status(201).json(savedProduct);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
+    res.json(updatedProduct);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct) return res.status(404).json({ message: "Product not found" });
+    res.json({ message: "Product deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
